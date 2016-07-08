@@ -14,32 +14,45 @@ namespace NzbDrone.Core.Test.Download.DownloadClientTests.RssGenerator {
     [TestFixture]
     public class TorrentRssGeneratorCachedEpisodeMatcherFixture : CoreTest<TorrentRssGeneratorCachedEpisodeMatcher> {
 
-        protected Mock<IFileSystemInfo> GivenMasterChefS08E16EpisodeFile() {
+        protected Mock<IFileSystemInfo> GivenTheFollowingFileSystemInfo(string fullname, string name, string logicalName) {
             var mock = new Mock<IFileSystemInfo>();
 
             mock.Setup(c => c.FullName)
-                .Returns("C:\\foo\\bar\\MasterChef.Au.S08E16.Webrip.x264-MFO.mp4");
+                .Returns(fullname);
             mock.Setup(c => c.Name)
-                .Returns("MasterChef.Au.S08E16.Webrip.x264-MFO.mp4");
+                .Returns(name);
             mock.Setup(c => c.LogicalName)
-                .Returns("MasterChef.Au.S08E16.Webrip.x264-MFO");
+                .Returns(logicalName);
             mock.Setup(c => c.Exists)
                 .Returns(true);
 
             return mock;
         }
-        protected TorrentRssGeneratorCachedEpisode GivenMasterChefS08E16CachedEpisode() {
-            return new TorrentRssGeneratorCachedEpisode {
-                Title = "MasterChef Au S08E16 Webrip x264-MFO mp4",
-                EpisodeInfo = Parser.Parser.ParseTitle("MasterChef Au S08E16 Webrip x264-MFO mp4")
-            };
+        protected TorrentRssGeneratorCachedEpisode GivenTheFollowingCachedEpisode(string json) {
+            return Newtonsoft.Json.JsonConvert.DeserializeObject<TorrentRssGeneratorCachedEpisode>(json);
         }
 
         [Test]
-        public void ShouldMatch_given_filesysteminfo() {
-            var fileinfo = this.GivenMasterChefS08E16EpisodeFile().Object;
-            var episode = this.GivenMasterChefS08E16CachedEpisode();
-        
+        public void Should_match_given_normal_release() {
+            var fileinfo = this.GivenTheFollowingFileSystemInfo(
+                "C:\\foo\\bar\\MasterChef.Au.S08E16.Webrip.x264-MFO.mp4", 
+                "MasterChef.Au.S08E16.Webrip.x264-MFO.mp4", 
+                "MasterChef.Au.S08E16.Webrip.x264-MFO").Object;
+
+            var episode = this.GivenTheFollowingCachedEpisode("{Title:\"MasterChef Au S08E16 Webrip x264-MFO mp4\"}");
+
+            this.Subject.Matches(episode, fileinfo).Should().BeTrue();
+        }
+
+        [Test]
+        public void Should_match_given_repack_release() {
+            var fileinfo = this.GivenTheFollowingFileSystemInfo(
+                "C:\\foo\\bar\\masterchef.australia.s08e22.repack.hdtv.x264-fqm[ettv].mkv",
+                "masterchef.australia.s08e22.repack.hdtv.x264-fqm[ettv].mkv",
+                "masterchef.australia.s08e22.repack.hdtv.x264-fqm[ettv]").Object;
+
+            var episode = this.GivenTheFollowingCachedEpisode("{\r\n  \"Guid\": \"guid\",\r\n  \"Title\": \"MasterChef Australia S08E22 REPACK HDTV x264-FQM[ettv]\" \r\n}");
+
             this.Subject.Matches(episode, fileinfo).Should().BeTrue();
         }
     }

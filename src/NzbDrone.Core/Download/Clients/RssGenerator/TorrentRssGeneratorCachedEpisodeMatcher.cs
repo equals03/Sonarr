@@ -22,7 +22,7 @@ namespace NzbDrone.Core.Download.Clients.RssGenerator {
             var episodeInfo = cached.EpisodeInfo ??
                               Parser.Parser.ParseTitle(cached.Title);
 
-            return fiparsed.ToString() == episodeInfo.ToString();
+            return string.Equals(fiparsed.ToString(), episodeInfo.ToString(), StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }
